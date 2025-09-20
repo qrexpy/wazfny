@@ -1,0 +1,21 @@
+user_id,education_level,field_of_study,gpa,interests,skills,experience_years,preferred_location
+1,Bachelor,Computer Science,3.8,"programming,machine learning,data analysis","Python,SQL,JavaScript,Git",2,Remote
+2,Master,Business Administration,3.6,"management,strategy,finance","Excel,PowerPoint,Leadership,Analytics",5,New York
+3,Bachelor,Mechanical Engineering,3.4,"robotics,automation,manufacturing","CAD,MATLAB,Python,Project Management",1,California
+4,PhD,Data Science,3.9,"research,statistics,AI","R,Python,TensorFlow,Statistics",3,Boston
+5,Associate,Graphic Design,3.2,"design,creativity,digital media","Photoshop,Illustrator,UI/UX,Branding",3,Austin
+6,Bachelor,Marketing,3.5,"social media,content creation,branding","Google Analytics,Facebook Ads,Copywriting",2,Chicago
+7,Master,Psychology,3.7,"counseling,research,human behavior","SPSS,Counseling,Research Methods",4,Seattle
+8,Bachelor,Biology,3.6,"healthcare,research,pharmaceuticals","Lab Techniques,Statistics,Writing",1,San Diego
+9,Bachelor,Finance,3.8,"investment,analysis,economics","Excel,Bloomberg,Financial Modeling",3,New York
+10,Master,Education,3.5,"teaching,curriculum,student development","Classroom Management,Assessment,Technology",6,Denver
+11,Bachelor,Chemistry,3.4,"research,pharmaceuticals,materials","Lab Equipment,Data Analysis,Technical Writing",2,Research Triangle
+12,Bachelor,English Literature,3.6,"writing,editing,communication","Writing,Editing,Research,Communications",1,Portland
+13,Master,Environmental Science,3.7,"sustainability,policy,conservation","GIS,Data Analysis,Policy Writing",3,San Francisco
+14,Bachelor,Economics,3.5,"analysis,policy,research","Statistics,Excel,Economic Modeling",2,Washington DC
+15,Associate,Web Development,3.3,"coding,web design,user experience","HTML,CSS,JavaScript,React",2,Remote
+16,PhD,Physics,3.9,"research,modeling,analysis","MATLAB,Python,Mathematical Modeling",4,Cambridge
+17,Bachelor,Accounting,3.6,"finance,auditing,compliance","QuickBooks,Excel,Tax Preparation",3,Atlanta
+18,Master,Public Health,3.8,"healthcare,epidemiology,policy","SAS,Public Speaking,Grant Writing",5,CDC Atlanta
+19,Bachelor,Art History,3.4,"museums,curation,education","Research,Writing,Art Knowledge",1,New York
+20,Bachelor,Communications,3.5,"media,public relations,marketing","Social Media,Writing,Public Speaking",2,Los Angeles

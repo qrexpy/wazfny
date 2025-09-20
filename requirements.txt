@@ -1,0 +1,48 @@
+# Core data science libraries
+pandas>=1.5.0
+numpy>=1.21.0
+scikit-learn>=1.1.0
+scipy>=1.9.0
+
+# Machine learning models
+xgboost>=1.6.0
+lightgbm>=3.3.0
+
+# Deep learning and embeddings
+sentence-transformers>=2.2.0
+transformers>=4.21.0
+torch>=1.12.0
+
+# Vector similarity search
+faiss-cpu>=1.7.0
+
+# API and web framework (optional)
+fastapi>=0.85.0
+uvicorn>=0.18.0
+
+# Data visualization
+matplotlib>=3.5.0
+seaborn>=0.11.0
+plotly>=5.10.0
+
+# Jupyter notebook support
+ipykernel>=6.15.0
+ipywidgets>=7.7.0
+
+# Utilities
+tqdm>=4.64.0
+requests>=2.28.0
+python-dotenv>=0.20.0
+
+# Hugging Face integration
+huggingface-hub>=0.10.0
+
+# Evaluation metrics
+rank-eval>=0.1.2
+
+# Optional: Vector databases (uncomment if needed)
+# pinecone-client>=2.2.0
+# weaviate-client>=3.15.0
+
+# Optional: Search APIs (uncomment if needed)
+# serpapi>=1.0.0
