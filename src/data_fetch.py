@@ -1,5 +1,6 @@
 """
 Data fetching utilities for external job APIs and data sources.
+Supports both SerpAPI (Google Jobs) and JobSpy (Indeed, LinkedIn, etc.)
 """
 
 import os
@@ -10,13 +11,21 @@ from typing import Dict, List, Any, Optional
 import json
 from datetime import datetime, timedelta
 
+try:
+    from jobspy import scrape_jobs
+    JOBSPY_AVAILABLE = True
+except ImportError:
+    JOBSPY_AVAILABLE = False
+    print("Warning: JobSpy not installed. Install with: pip install python-jobspy")
+
 
 class JobDataFetcher:
-    """Fetch job data from various external APIs"""
+    """Fetch job data from various external APIs and JobSpy scraping"""
     
     def __init__(self):
         self.serpapi_key = os.getenv("SERPAPI_KEY")
         self.indeed_api_key = os.getenv("INDEED_API_KEY")
+        self.jobspy_available = JOBSPY_AVAILABLE
     
     def fetch_google_jobs(self, query: str, location: str = "", num_results: int = 50) -> List[Dict[str, Any]]:
         """
@@ -86,11 +95,189 @@ class JobDataFetcher:
     
     def fetch_indeed_jobs(self, query: str, location: str = "", num_results: int = 50) -> List[Dict[str, Any]]:
         """
-        Fetch job postings from Indeed API (if available)
-        Note: Indeed API is not publicly available anymore, this is a placeholder
+        Fetch job postings from Indeed using JobSpy scraping
+        No proxy required - JobSpy handles this automatically
         """
-        print("Warning: Indeed API is not publicly available. Consider web scraping alternatives.")
-        return []
+        if not self.jobspy_available:
+            print("Warning: JobSpy not available. Install with: pip install python-jobspy")
+            return []
+        
+        try:
+            # Use JobSpy to scrape Indeed jobs
+            jobs_df = scrape_jobs(
+                site_name=["indeed"],
+                search_term=query,
+                location=location,
+                results_wanted=num_results,
+                hours_old=72,  # Jobs posted within last 72 hours
+                country_indeed='USA'  # Default to USA, can be made configurable
+            )
+            
+            if jobs_df.empty:
+                print(f"No jobs found for query: {query}")
+                return []
+            
+            # Convert to our standard format
+            jobs = []
+            for _, row in jobs_df.iterrows():
+                job_data = {
+                    "job_id": str(row.get("id", "")),
+                    "job_title": str(row.get("title", "")),
+                    "company": str(row.get("company", "")),
+                    "location": str(row.get("location", "")),
+                    "description": str(row.get("description", "")),
+                    "salary_range": self._format_salary(row),
+                    "posted_date": str(row.get("date_posted", "")),
+                    "job_url": str(row.get("job_url", "")),
+                    "source": "indeed_jobspy",
+                    "scraped_at": datetime.now().isoformat()
+                }
+                jobs.append(job_data)
+            
+            print(f"Successfully scraped {len(jobs)} jobs from Indeed")
+            return jobs
+            
+        except Exception as e:
+            print(f"Error scraping Indeed jobs: {e}")
+            return []
+    
+    def _format_salary(self, job_row) -> str:
+        """Format salary information from JobSpy data"""
+        min_salary = job_row.get("min_amount")
+        max_salary = job_row.get("max_amount")
+        currency = job_row.get("currency", "USD")
+        interval = job_row.get("interval", "yearly")
+        
+        if pd.notna(min_salary) and pd.notna(max_salary):
+            return f"{currency} {min_salary:,.0f} - {max_salary:,.0f} {interval}"
+        elif pd.notna(min_salary):
+            return f"{currency} {min_salary:,.0f}+ {interval}"
+        elif pd.notna(max_salary):
+            return f"Up to {currency} {max_salary:,.0f} {interval}"
+        else:
+            return ""
+    
+    def fetch_linkedin_jobs(self, query: str, location: str = "", num_results: int = 50) -> List[Dict[str, Any]]:
+        """
+        Fetch job postings from LinkedIn using JobSpy scraping
+        """
+        if not self.jobspy_available:
+            print("Warning: JobSpy not available. Install with: pip install python-jobspy")
+            return []
+        
+        try:
+            jobs_df = scrape_jobs(
+                site_name=["linkedin"],
+                search_term=query,
+                location=location,
+                results_wanted=num_results,
+                hours_old=72
+            )
+            
+            if jobs_df.empty:
+                print(f"No LinkedIn jobs found for query: {query}")
+                return []
+            
+            # Convert to our standard format
+            jobs = []
+            for _, row in jobs_df.iterrows():
+                job_data = {
+                    "job_id": str(row.get("id", "")),
+                    "job_title": str(row.get("title", "")),
+                    "company": str(row.get("company", "")),
+                    "location": str(row.get("location", "")),
+                    "description": str(row.get("description", "")),
+                    "salary_range": self._format_salary(row),
+                    "posted_date": str(row.get("date_posted", "")),
+                    "job_url": str(row.get("job_url", "")),
+                    "source": "linkedin_jobspy",
+                    "scraped_at": datetime.now().isoformat()
+                }
+                jobs.append(job_data)
+            
+            print(f"Successfully scraped {len(jobs)} jobs from LinkedIn")
+            return jobs
+            
+        except Exception as e:
+            print(f"Error scraping LinkedIn jobs: {e}")
+            return []
+    
+    def fetch_glassdoor_jobs(self, query: str, location: str = "", num_results: int = 50) -> List[Dict[str, Any]]:
+        """
+        Fetch job postings from Glassdoor using JobSpy scraping
+        """
+        if not self.jobspy_available:
+            print("Warning: JobSpy not available. Install with: pip install python-jobspy")
+            return []
+        
+        try:
+            jobs_df = scrape_jobs(
+                site_name=["glassdoor"],
+                search_term=query,
+                location=location,
+                results_wanted=num_results,
+                hours_old=72
+            )
+            
+            if jobs_df.empty:
+                print(f"No Glassdoor jobs found for query: {query}")
+                return []
+            
+            # Convert to our standard format
+            jobs = []
+            for _, row in jobs_df.iterrows():
+                job_data = {
+                    "job_id": str(row.get("id", "")),
+                    "job_title": str(row.get("title", "")),
+                    "company": str(row.get("company", "")),
+                    "location": str(row.get("location", "")),
+                    "description": str(row.get("description", "")),
+                    "salary_range": self._format_salary(row),
+                    "posted_date": str(row.get("date_posted", "")),
+                    "job_url": str(row.get("job_url", "")),
+                    "source": "glassdoor_jobspy",
+                    "scraped_at": datetime.now().isoformat()
+                }
+                jobs.append(job_data)
+            
+            print(f"Successfully scraped {len(jobs)} jobs from Glassdoor")
+            return jobs
+            
+        except Exception as e:
+            print(f"Error scraping Glassdoor jobs: {e}")
+            return []
+    
+    def fetch_all_sources(self, query: str, location: str = "", num_results_per_source: int = 20) -> List[Dict[str, Any]]:
+        """
+        Fetch jobs from all available sources (SerpAPI + JobSpy sites)
+        """
+        all_jobs = []
+        
+        # Fetch from Google Jobs via SerpAPI
+        if self.serpapi_key:
+            print("Fetching from Google Jobs (SerpAPI)...")
+            google_jobs = self.fetch_google_jobs(query, location, num_results_per_source)
+            all_jobs.extend(google_jobs)
+        
+        # Fetch from JobSpy sources
+        if self.jobspy_available:
+            sources = [
+                ("Indeed", self.fetch_indeed_jobs),
+                ("LinkedIn", self.fetch_linkedin_jobs),
+                ("Glassdoor", self.fetch_glassdoor_jobs)
+            ]
+            
+            for source_name, fetch_method in sources:
+                print(f"Fetching from {source_name} (JobSpy)...")
+                try:
+                    jobs = fetch_method(query, location, num_results_per_source)
+                    all_jobs.extend(jobs)
+                    time.sleep(2)  # Rate limiting between sources
+                except Exception as e:
+                    print(f"Error fetching from {source_name}: {e}")
+        
+        print(f"Total jobs fetched: {len(all_jobs)}")
+        return all_jobs
     
     def _extract_salary(self, job_data: Dict[str, Any]) -> str:
         """Extract salary information from job data"""
@@ -242,14 +429,15 @@ class JobDataFetcher:
 
 # Utility functions for data collection
 def collect_job_data(queries: List[str], locations: List[str] = [""], 
-                    num_results_per_query: int = 50) -> pd.DataFrame:
+                    num_results_per_query: int = 50, use_all_sources: bool = True) -> pd.DataFrame:
     """
-    Collect job data for multiple queries and locations
+    Collect job data for multiple queries and locations from all available sources
     
     Args:
         queries: List of job search queries
         locations: List of locations to search in
-        num_results_per_query: Number of results per query
+        num_results_per_query: Number of results per query (per source if use_all_sources=True)
+        use_all_sources: If True, fetch from all sources (SerpAPI + JobSpy). If False, use only SerpAPI
     
     Returns:
         DataFrame with collected job data
@@ -260,16 +448,74 @@ def collect_job_data(queries: List[str], locations: List[str] = [""],
     for query in queries:
         for location in locations:
             print(f"Fetching jobs for '{query}' in '{location}'...")
-            jobs = fetcher.fetch_google_jobs(query, location, num_results_per_query)
+            
+            if use_all_sources and (fetcher.serpapi_key or fetcher.jobspy_available):
+                # Fetch from all available sources
+                results_per_source = max(1, num_results_per_query // 4)  # Divide among sources
+                jobs = fetcher.fetch_all_sources(query, location, results_per_source)
+            else:
+                # Fallback to Google Jobs only
+                jobs = fetcher.fetch_google_jobs(query, location, num_results_per_query)
+            
+            all_jobs.extend(jobs)
+            time.sleep(3)  # Rate limiting between queries
+    
+    if all_jobs:
+        df = pd.DataFrame(all_jobs)
+        print(f"Collected {len(df)} total jobs before deduplication")
+        
+        # Remove duplicates based on job_title, company, and location
+        df = df.drop_duplicates(subset=['job_title', 'company', 'location'], keep='first')
+        print(f"After deduplication: {len(df)} unique jobs")
+        
+        # Enrich the data
+        df = fetcher.enrich_job_data(df)
+        return df
+    else:
+        return pd.DataFrame()
+
+def collect_job_data_single_source(queries: List[str], source: str = "google", 
+                                 locations: List[str] = [""], 
+                                 num_results_per_query: int = 50) -> pd.DataFrame:
+    """
+    Collect job data from a single source
+    
+    Args:
+        queries: List of job search queries
+        source: Source to use ("google", "indeed", "linkedin", "glassdoor")
+        locations: List of locations to search in
+        num_results_per_query: Number of results per query
+    
+    Returns:
+        DataFrame with collected job data
+    """
+    fetcher = JobDataFetcher()
+    all_jobs = []
+    
+    # Map source names to methods
+    source_methods = {
+        "google": fetcher.fetch_google_jobs,
+        "indeed": fetcher.fetch_indeed_jobs,
+        "linkedin": fetcher.fetch_linkedin_jobs,
+        "glassdoor": fetcher.fetch_glassdoor_jobs
+    }
+    
+    if source not in source_methods:
+        print(f"Unknown source: {source}. Available: {list(source_methods.keys())}")
+        return pd.DataFrame()
+    
+    fetch_method = source_methods[source]
+    
+    for query in queries:
+        for location in locations:
+            print(f"Fetching jobs for '{query}' in '{location}' from {source}...")
+            jobs = fetch_method(query, location, num_results_per_query)
             all_jobs.extend(jobs)
             time.sleep(2)  # Rate limiting
     
     if all_jobs:
         df = pd.DataFrame(all_jobs)
-        # Remove duplicates based on job_title and company
-        df = df.drop_duplicates(subset=['job_title', 'company'], keep='first')
-        
-        # Enrich the data
+        df = df.drop_duplicates(subset=['job_title', 'company', 'location'], keep='first')
         df = fetcher.enrich_job_data(df)
         return df
     else:
@@ -288,5 +534,72 @@ def get_sample_queries() -> List[str]:
         "business analyst",
         "sales representative",
         "project manager",
-        "web developer"
+        "web developer",
+        "machine learning engineer",
+        "cybersecurity analyst",
+        "digital marketing manager",
+        "UX designer",
+        "devops engineer",
+        "content writer",
+        "operations manager",
+        "customer success manager",
+        "data analyst",
+        "software architect"
     ]
+
+def get_sample_locations() -> List[str]:
+    """Get sample locations for job searches"""
+    return [
+        "San Francisco, CA",
+        "New York, NY", 
+        "Seattle, WA",
+        "Austin, TX",
+        "Boston, MA",
+        "Chicago, IL",
+        "Los Angeles, CA",
+        "Denver, CO",
+        "Remote",
+        ""  # No location filter
+    ]
+
+def demo_job_collection():
+    """
+    Demo function showing how to use the enhanced job collection features
+    """
+    print("=== Career Recommender Job Data Collection Demo ===")
+    print()
+    
+    # Sample queries
+    queries = ["software engineer", "data scientist"]
+    locations = ["San Francisco, CA", "Remote"]
+    
+    # Demo 1: Collect from all sources
+    print("1. Collecting from all available sources...")
+    all_source_jobs = collect_job_data(
+        queries=queries,
+        locations=locations,
+        num_results_per_query=20,
+        use_all_sources=True
+    )
+    print(f"Collected {len(all_source_jobs)} jobs from all sources")
+    print()
+    
+    # Demo 2: Collect from Indeed only (using JobSpy)
+    print("2. Collecting from Indeed only...")
+    indeed_jobs = collect_job_data_single_source(
+        queries=queries,
+        source="indeed",
+        locations=locations,
+        num_results_per_query=20
+    )
+    print(f"Collected {len(indeed_jobs)} jobs from Indeed")
+    print()
+    
+    # Demo 3: Show source distribution
+    if not all_source_jobs.empty:
+        print("3. Source distribution:")
+        source_counts = all_source_jobs['source'].value_counts()
+        for source, count in source_counts.items():
+            print(f"   {source}: {count} jobs")
+    
+    return all_source_jobs

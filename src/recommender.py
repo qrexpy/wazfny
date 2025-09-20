@@ -37,10 +37,23 @@ class CareerRecommender:
         with open(self.models_dir / "metadata.json", 'r') as f:
             self.metadata = json.load(f)
         
-        # Load embedding model
-        model_name = self.metadata['embedding_model']
-        print(f"Loading embedding model: {model_name}")
-        self.embedding_model = SentenceTransformer(model_name)
+        # Load embedding model - prefer JobBERT-v3 for job-specific embeddings
+        model_name = self.metadata.get('embedding_model', 'TechWolf/JobBERT-v3')
+        
+        # Use JobBERT-v3 if available, fallback to original model
+        try:
+            if 'JobBERT' not in model_name:
+                print(f"Upgrading to JobBERT-v3 for better job title embeddings...")
+                model_name = 'TechWolf/JobBERT-v3'
+            
+            print(f"Loading embedding model: {model_name}")
+            self.embedding_model = SentenceTransformer(model_name)
+            print(f"Successfully loaded {model_name}")
+            
+        except Exception as e:
+            print(f"Error loading {model_name}: {e}")
+            print("Falling back to all-MiniLM-L6-v2...")
+            self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
         
         # Load processed data
         self.users_df = pd.read_pickle(self.models_dir / "users_processed.pkl")

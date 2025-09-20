@@ -36,6 +36,13 @@ python-dotenv>=0.20.0
 
 # Hugging Face integration
 huggingface-hub>=0.10.0
+datasets>=2.14.0
+
+# Job scraping
+python-jobspy>=1.1.79
+
+# Search APIs
+serpapi>=1.0.0
 
 # Evaluation metrics
 rank-eval>=0.1.2
@@ -43,6 +50,3 @@ rank-eval>=0.1.2
 # Optional: Vector databases (uncomment if needed)
 # pinecone-client>=2.2.0
 # weaviate-client>=3.15.0
-
-# Optional: Search APIs (uncomment if needed)
-# serpapi>=1.0.0
